@@ -16,13 +16,47 @@ state = os.getenv("STATE")
 
 
 # ✅ OAuth Login URL (only if needed)
-@router.get("/login")
-def login():
+from fastapi import APIRouter, Request, HTTPException, status
+import os
+from dotenv import load_dotenv
+import requests
+
+# Load environment variables
+load_dotenv()
+
+router = APIRouter()
+
+client_id = os.getenv("API_KEY")
+client_secret = os.getenv("SECRET_KEY")
+redirect_uri = os.getenv("REDIRECT_URL")
+state = os.getenv("STATE")
+
+# Admin credentials
+admin_username = os.getenv("LOGIN_USERNAME")
+admin_password = os.getenv("LOGIN_PASSWORD")
+
+upstox_username = os.getenv("UPSTOX_NUMBER")
+upstox_password = os.getenv("UPSTOX_PASSWORD")
+totp_secret = os.getenv("UPSTOX_OTP_SECRET_KEY")
+
+@router.post("/login")
+async def login(request: Request):
+    body = await request.json()
+    username = body.get("username")
+    password = body.get("password")
+
+    if username != admin_username or password != admin_password:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials"
+        )
+
     login_url = (
         f"https://api.upstox.com/v2/login/authorization/dialog?"
         f"response_type=code&client_id={client_id}&redirect_uri={redirect_uri}&state={state}"
     )
-    return {"login_url": login_url}
+    return {"detail": "success"}
+
 
 
 # ✅ Exchange Code for Access Token (dynamic)
